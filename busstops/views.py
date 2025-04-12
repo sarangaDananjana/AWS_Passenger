@@ -1,6 +1,7 @@
 from datetime import timedelta
 import time
 from django.shortcuts import render
+from django.utils.timezone import localtime
 from django.core.cache import cache
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
@@ -94,13 +95,13 @@ def booking_search(request):
                 "bus_name": bus.bus_name,
                 "bus_number": bus.bus_number
             },
-            "start_arrival_time": start_arrival_time.strftime("%Y-%m-%d %H:%M:%S"),
-            "end_arrival_time": end_arrival_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "start_arrival_time": localtime(start_arrival_time).strftime("%Y-%m-%d %H:%M:%S"),
+            "end_arrival_time": localtime(end_arrival_time).strftime("%Y-%m-%d %H:%M:%S"),
             # Ensure the distance is JSON serializable
             "total_distance": float(total_distance),
             "start_point_name": start_point.name,
             "end_point_name": end_point.name,
-            "is_start_time_ok": is_start_time_ok.strftime("%Y-%m-%d %H:%M:%S"),
+            "is_start_time_ok": localtime(is_start_time_ok).strftime("%Y-%m-%d %H:%M:%S"),
         })
 
         cache.set(cache_key, trips_data)
@@ -158,8 +159,8 @@ def instant_booking_search(request):
                 "bus_name": bus.bus_name,
                 "bus_number": bus.bus_number
             },
-            "start_arrival_time": start_arrival_time.strftime("%Y-%m-%d %H:%M:%S"),
-            "end_arrival_time": end_arrival_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "start_arrival_time": localtime(start_arrival_time).strftime("%Y-%m-%d %H:%M:%S"),
+            "end_arrival_time": localtime(end_arrival_time).strftime("%Y-%m-%d %H:%M:%S"),
             # Ensure the distance is JSON serializable
             "total_distance": float(total_distance),
         })
