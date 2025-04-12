@@ -87,6 +87,7 @@ class NormalUserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_pic = models.FileField(
         upload_to='images/profile_pics', null=True, blank=True)
+    customer_id = models.CharField(max_length=255, null=True, blank=True)
 
 
 class BusConductorProfile(models.Model):
