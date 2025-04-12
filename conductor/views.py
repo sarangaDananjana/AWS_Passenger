@@ -4,6 +4,7 @@ import hashlib
 import base64
 from django.utils.timezone import now
 from django.conf import settings
+from django.utils.timezone import localtime
 from django.db import models
 from django.http import JsonResponse
 from django.db.models import Sum
@@ -88,7 +89,7 @@ def view_bus_trip_details(request, trip_id):
             "start_point": booking.start_point.name,
             "end_point": booking.end_point.name,
             "fare_price": booking.fare_price,
-            "booked_at": booking.booked_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "booked_at": localtime(booking.booked_at).strftime("%Y-%m-%d %H:%M:%S"),
             "booking_status": booking.booking_status
         } for booking in bookings]
 
@@ -96,7 +97,7 @@ def view_bus_trip_details(request, trip_id):
             "bus_trip_id": trip_id,
             "bus_name": bus_trip.bus.bus_name,
             "route_name": bus_trip.route.name,
-            "start_time": bus_trip.start_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "start_time": localtime(bus_trip.start_time).strftime("%Y-%m-%d %H:%M:%S"),
             "total_revenue": bus_trip.revenue,
             "is_revenue_released": bus_trip.is_revenue_released,  # ✅ New field
             "booked_seats": seat_data
@@ -213,8 +214,8 @@ def get_upcoming_trips(request):
         {
             "trip_id": trip['id'],
             "trip_name": trip['name'],
-            "start_date": trip['start_time'].strftime("%Y-%m-%d"),
-            "start_time": trip['start_time'].strftime("%H:%M:%S"),
+            "start_date": localtime(trip['start_time']).strftime("%Y-%m-%d"),
+            "start_time": localtime(trip['start_time']).strftime("%H:%M:%S"),
             "is_bustrip_canceled": trip['is_bustrip_canceled']
         }
         for trip in upcoming_trips
@@ -326,7 +327,7 @@ def get_bus_trip_revenue(request):
 
         trip_data.append({
             'bus_trip_name': trip['name'],
-            'bus_trip_start_time': trip['start_time'].strftime("%Y-%m-%d %H:%M:%S"),
+            'bus_trip_start_time': localtime(trip['start_time']).strftime("%Y-%m-%d %H:%M:%S"),
             'bus_trip_revenue': trip['revenue'],
             'reserved_seats': reserved_seats,
             'is_revenue_released': trip['is_revenue_released']
