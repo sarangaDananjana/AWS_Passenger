@@ -87,7 +87,7 @@ class SectionAdmin(admin.ModelAdmin):
 
 @admin.register(BusRoute)
 class BusRouteAdmin(admin.ModelAdmin):
-    list_display = ('name', 'is_it_reversed')
+    list_display = ('id','name', 'is_it_reversed')
 
 
 @admin.register(BusFareSemiLuxury)
