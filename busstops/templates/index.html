@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Routes Map</title>
+
+    <style>
+        .suggestions {
+            border: 1px solid #ddd;
+            background-color: white;
+            max-height: 150px;
+            overflow-y: auto;
+            position: absolute;
+            z-index: 1000;
+            width: 100%;
+        }
+
+        .suggestions div {
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .suggestions div:hover {
+            background-color: #f1f1f1;
+        }
+
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+    </style>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEcB07y9b7jELelN9v6hF7Q32oeEVN3ww"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const startInput = document.getElementById('start');
+            const endInput = document.getElementById('end');
+            const searchButton = document.getElementById('search');
+            const mapContainer = document.getElementById('map');
+
+            let map, directionsService, directionsRenderer;
+
+            // Initialize Google Map
+            function initializeMap() {
+                map = new google.maps.Map(mapContainer, {
+                    center: { lat: 7.8731, lng: 80.7718 }, // Sri Lanka center
+                    zoom: 7,
+                });
+                directionsService = new google.maps.DirectionsService();
+                directionsRenderer = new google.maps.DirectionsRenderer();
+                directionsRenderer.setMap(map);
+            }
+
+            // Fetch suggestions for start or end location
+            function fetchSuggestions(inputElement, term) {
+                fetch(`/api/suggestions/?term=${term}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const suggestionsContainer = inputElement.nextElementSibling;
+                        suggestionsContainer.innerHTML = '';
+
+                        data.forEach(item => {
+                            const suggestion = document.createElement('div');
+                            suggestion.textContent = item.name;
+                            suggestion.addEventListener('click', () => {
+                                inputElement.value = item.name;
+                                suggestionsContainer.innerHTML = '';
+                            });
+                            suggestionsContainer.appendChild(suggestion);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching suggestions:', error));
+            }
+
+            // Fetch and draw the route
+            function fetchAndDrawRoute() {
+                const start = startInput.value;
+                const end = endInput.value;
+
+                if (!start || !end) {
+                    alert("Please select both start and end points.");
+                    return;
+                }
+
+                fetch(`/api/bus-search/?start=${start}&end=${end}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.case === 1 && data.routes) {
+                            drawMultipleBusRoutes(data.routes); // Pass all routes to the new function
+                        } else {
+                            console.error('No routes found:', data.error);
+                        }
+
+
+                        // Clear existing markers or routes
+                        directionsRenderer.set('directions', null);
+
+                        if (data.case === 1) {
+                            drawSingleBusRoute(data);
+                        } else if (data.case === 2) {
+                            drawTwoBusRoutes(data.routes);
+                        } else if (data.case === 3) {
+                            drawThreeBusRoutes(data.routes);
+                        }
+                    })
+                    .catch(error => console.error('Error fetching route data:', error));
+            }
+
+            // Draw single bus route
+            function drawMultipleBusRoutes(routes) {
+                routes.forEach(route => {
+                    drawSingleBusRoute(route); // Use the existing function for each route
+                });
+            }
+            function drawSingleBusRoute(data) {
+                const { start, end, points } = data;
+
+                // Mark start and end points
+                new google.maps.Marker({
+                    position: { lat: start.lat, lng: start.lng },
+                    map: map,
+                    icon: {
+                        url: '/static/icons/start.png',
+                        scaledSize: new google.maps.Size(30, 30) // Resize to 30x30 pixels
+                    }
+                });
+
+                new google.maps.Marker({
+                    position: { lat: end.lat, lng: end.lng },
+                    map: map,
+                    icon: {
+                        url: '/static/icons/end.png',
+                        scaledSize: new google.maps.Size(30, 30) // Resize to 30x30 pixels
+                    }
+                });
+
+                // Mark intermediate points
+                points.forEach(point => {
+                    new google.maps.Marker({
+                        position: { lat: point.lat, lng: point.lng },
+                        map: map,
+                        icon: {
+                            url: '/static/icons/dot.png',
+                            scaledSize: new google.maps.Size(5, 5) // Resize to 30x30 pixels
+                        }
+                    });
+                });
+            }
+
+            // Draw two bus routes
+            function drawTwoBusRoutes(routes) {
+                routes.forEach(route => {
+                    const { start, end, overlapping_point } = route;
+
+                    // Mark start, end, and overlapping point
+                    new google.maps.Marker({
+                        position: { lat: start.lat, lng: start.lng },
+                        map: map,
+                        icon: {
+                            url: '/static/icons/start.png',
+                            scaledSize: new google.maps.Size(30, 30) // Resize to 30x30 pixels
+                        }
+                    });
+
+                    new google.maps.Marker({
+                        position: { lat: end.lat, lng: end.lng },
+                        map: map,
+                        icon: {
+                            url: '/static/icons/end.png',
+                            scaledSize: new google.maps.Size(30, 30) // Resize to 30x30 pixels
+                        }
+                    });
+
+                    new google.maps.Marker({
+                        position: { lat: overlapping_point.lat, lng: overlapping_point.lng },
+                        map: map,
+                        icon: {
+                            url: '/static/icons/overlap.png',
+                            scaledSize: new google.maps.Size(30, 30) // Resize to 30x30 pixels
+                        }
+                    });
+
+                    // Draw paths (two colors)
+                    const directionsRequest1 = {
+                        origin: { lat: start.lat, lng: start.lng },
+                        destination: { lat: overlapping_point.lat, lng: overlapping_point.lng },
+                        travelMode: google.maps.TravelMode.DRIVING,
+                    };
+
+                    const directionsRequest2 = {
+                        origin: { lat: overlapping_point.lat, lng: overlapping_point.lng },
+                        destination: { lat: end.lat, lng: end.lng },
+                        travelMode: google.maps.TravelMode.DRIVING,
+                    };
+
+                    drawRoute(directionsRequest1, '#FF0000');
+                    drawRoute(directionsRequest2, '#0000FF');
+                });
+            }
+
+            // Draw three bus routes
+            function drawThreeBusRoutes(routes) {
+                routes.forEach(route => {
+                    const { start, end, first_common_point, second_common_point } = route;
+
+                    // Mark start, end, and common points
+                    new google.maps.Marker({
+                        position: { lat: start.lat, lng: start.lng },
+                        map: map,
+                        icon: {
+                            url: '/static/icons/start.png',
+                            scaledSize: new google.maps.Size(30, 30) // Resize to 30x30 pixels
+                        }
+                    });
+
+                    new google.maps.Marker({
+                        position: { lat: end.lat, lng: end.lng },
+                        map: map,
+                        icon: {
+                            url: '/static/icons/end.png',
+                            scaledSize: new google.maps.Size(30, 30) // Resize to 30x30 pixels
+                        }
+                    });
+
+                    new google.maps.Marker({
+                        position: { lat: first_common_point.lat, lng: first_common_point.lng },
+                        map: map,
+                        icon: {
+                            url: '/static/icons/overlap.png',
+                            scaledSize: new google.maps.Size(30, 30) // Resize to 30x30 pixels
+                        }
+                    });
+
+                    new google.maps.Marker({
+                        position: { lat: second_common_point.lat, lng: second_common_point.lng },
+                        map: map,
+                        icon: {
+                            url: '/static/icons/overlap.png',
+                            scaledSize: new google.maps.Size(30, 30) // Resize to 30x30 pixels
+                        }
+                    });
+
+                    // Draw paths (three colors)
+                    const directionsRequest1 = {
+                        origin: { lat: start.lat, lng: start.lng },
+                        destination: { lat: first_common_point.lat, lng: first_common_point.lng },
+                        travelMode: google.maps.TravelMode.DRIVING,
+                    };
+
+                    const directionsRequest2 = {
+                        origin: { lat: first_common_point.lat, lng: first_common_point.lng },
+                        destination: { lat: second_common_point.lat, lng: second_common_point.lng },
+                        travelMode: google.maps.TravelMode.DRIVING,
+                    };
+
+                    const directionsRequest3 = {
+                        origin: { lat: second_common_point.lat, lng: second_common_point.lng },
+                        destination: { lat: end.lat, lng: end.lng },
+                        travelMode: google.maps.TravelMode.DRIVING,
+                    };
+
+                    drawRoute(directionsRequest1, '#FF0000');
+                    drawRoute(directionsRequest2, '#00FF00');
+                    drawRoute(directionsRequest3, '#0000FF');
+                });
+            }
+
+            // Helper to draw a route
+            function drawRoute(request, color) {
+                const directionsDisplay = new google.maps.DirectionsRenderer({
+                    map: map,
+                    polylineOptions: {
+                        strokeColor: color,
+                        strokeWeight: 4
+                    },
+                    suppressMarkers: true
+                });
+                directionsService.route(request, (result, status) => {
+                    if (status === google.maps.DirectionsStatus.OK) {
+                        directionsDisplay.setDirections(result);
+                    } else {
+                        console.error('Directions request failed due to ', status);
+                    }
+                });
+            }
+
+            // Initialize the map
+            initializeMap();
+
+            // Fetch suggestions as the user types
+            startInput.addEventListener('input', () => fetchSuggestions(startInput, startInput.value));
+            endInput.addEventListener('input', () => fetchSuggestions(endInput, endInput.value));
+
+            // Fetch and draw routes on button click
+            searchButton.addEventListener('click', fetchAndDrawRoute);
+        });
+    </script>
+</head>
+
+<body>
+    <div>
+        <input id="start" type="text" placeholder="Start Location" autocomplete="off">
+        <div id="start-suggestions" class="suggestions"></div>
+
+        <input id="end" type="text" placeholder="End Location" autocomplete="off">
+        <div id="end-suggestions" class="suggestions"></div>
+
+        <button id="search">Search</button>
+    </div>
+    <div id="map"></div>
+</body>
+
+</html>
