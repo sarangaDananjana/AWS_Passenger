@@ -184,7 +184,7 @@ def reschedule_booking(request):
             "end_point": end_point.name,
             "fare_price": booking.fare_price,
             "booking_status": booking.booking_status,
-            "booked_at": booking.booked_at.strftime("%Y-%m-%d %H:%M:%S"),
+            "booked_at": localtime(booking.booked_at).strftime("%Y-%m-%d %H:%M:%S"),
             "qr_code_url": request.build_absolute_uri(booking.qr_code.url)
         }, status=status.HTTP_200_OK)
 
