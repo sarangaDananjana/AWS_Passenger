@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import book_seat, user_booking_history, home_ongoing_bookings, get_notifications, mark_notifications_as_read, get_ticket_details, reschedule_booking, cancel_booking
+from .views import book_seat, user_booking_history, home_ongoing_bookings, get_notifications, mark_notifications_as_read, get_ticket_details, reschedule_booking, cancel_booking, update_customer_id
 
 urlpatterns = [
     path('book-seat/', book_seat, name='book_seat'),
@@ -13,4 +13,5 @@ urlpatterns = [
     path('notifications/read/', mark_notifications_as_read,
          name='mark_notifications_as_read'),
     path('ticket/<int:booking_id>/', get_ticket_details, name='get_ticket_details'),
+    path('update-customer-id/', update_customer_id, name='update-customer-id'),
 ]

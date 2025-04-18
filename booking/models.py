@@ -7,6 +7,7 @@ from members.models import User
 SECRET_QR_KEY = settings.SECRET_KEY  # Use a secret key to sign QR codes
 
 BOOOKING_STATUS = [
+    ('PENDING', 'Pending'),
     ('BOOKED', 'Booked'),
     ('VERIFIED', 'Verified'),
     ('BOOKING_CANCELED', 'Booking_canceled'),
