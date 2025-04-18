@@ -37,10 +37,19 @@ class UserDetailsSerializer(serializers.ModelSerializer):
         source='normal_user_profile.profile_pic', required=False)
     bus_conductor_profile = BusConductorProfileSerializer(required=False)
 
+    lane_1 = serializers.CharField(
+        source='normal_user_profile.lane_1', required=False)
+    lane_2 = serializers.CharField(
+        source='normal_user_profile.lane_2', required=False)
+    city = serializers.CharField(
+        source='normal_user_profile.city', required=False)
+    postal_code = serializers.CharField(
+        source='normal_user_profile.postal_code', required=False)
+
     class Meta:
         model = User
         fields = ['email', "is_email_verified", 'phone_number', 'gender',
-                  'profile_pic', 'first_name', 'last_name', 'birthday', 'bus_conductor_profile']
+                  'profile_pic', 'first_name', 'last_name', 'birthday', 'bus_conductor_profile', 'lane_1', 'lane_2', 'city', 'postal_code']
         read_only_fields = ['phone_number']  # Phone number cannot be edited
 
     def update(self, instance, validated_data):
@@ -49,6 +58,7 @@ class UserDetailsSerializer(serializers.ModelSerializer):
         """
 
         bus_conductor_data = validated_data.pop('bus_conductor_profile', None)
+        profile_data = validated_data.pop('normal_user_profile', {})
 
         instance.email = validated_data.get('email', instance.email)
         instance.gender = validated_data.get('gender', instance.gender)
@@ -58,6 +68,11 @@ class UserDetailsSerializer(serializers.ModelSerializer):
             'last_name', instance.last_name)
         instance.birthday = validated_data.get('birthday', instance.birthday)
         instance.save()
+
+        normal_user_profile = instance.normal_user_profile
+        for field, value in profile_data.items():
+            setattr(normal_user_profile, field, value)
+        normal_user_profile.save()
 
         if instance.role == User.Role.BUS_CONDUCTOR and bus_conductor_data:
             profile, created = BusConductorProfile.objects.get_or_create(
@@ -124,7 +139,6 @@ class BusSerializer(serializers.ModelSerializer):
         # Assign the logged-in conductor as the bus owner
         validated_data['owner'] = user
         return super().create(validated_data)
-
 
 
 class AppVersionSerializer(serializers.ModelSerializer):

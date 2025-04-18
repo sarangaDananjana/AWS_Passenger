@@ -26,7 +26,8 @@ class User(AbstractUser):
         BUS_CONDUCTOR = "BUS_CONDUCTOR", "Bus Conductor"
 
     username = None
-    phone_number = models.CharField(max_length=15,  blank=True, null=True, unique=True)
+    phone_number = models.CharField(
+        max_length=15,  blank=True, null=True, unique=True)
     gender = models.CharField(
         max_length=1, choices=GENDER_CHOICES, default=MALE,  blank=True, null=True)
     birthday = models.DateField(null=True, blank=True)
@@ -46,10 +47,8 @@ class User(AbstractUser):
     USERNAME_FIELD = "phone_number"
     REQUIRED_FIELDS = []
 
-
     def __str__(self):
         return f"{self.phone_number}"
-
 
     def generate_otp(self):
         """Generate a 6-digit OTP and set expiration time."""
@@ -88,6 +87,10 @@ class NormalUserProfile(models.Model):
     profile_pic = models.FileField(
         upload_to='images/profile_pics', null=True, blank=True)
     customer_id = models.CharField(max_length=255, null=True, blank=True)
+    lane_1 = models.CharField(max_length=255, null=True, blank=True)
+    lane_2 = models.CharField(max_length=255, null=True, blank=True)
+    city = models.CharField(max_length=255, null=True, blank=True)
+    postal_code = models.CharField(max_length=255, null=True, blank=True)
 
 
 class BusConductorProfile(models.Model):
@@ -125,8 +128,6 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.user.phone_number} - {self.notification_type}"
-
-
 
 
 class AppVersion(models.Model):
