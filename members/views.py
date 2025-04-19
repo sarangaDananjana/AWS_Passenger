@@ -1,5 +1,5 @@
 import requests
-from members.models import User
+from members.models import User, NormalUserProfile
 from busstops.models import Buses
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.decorators import api_view, permission_classes
@@ -10,9 +10,10 @@ from django.contrib.auth import authenticate
 from django.utils.timezone import now
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import BusConductorDetailsSerializer
-from .serializers import UserRegistrationSerializer, UserDetailsSerializer, BusSerializer
+from .serializers import UserRegistrationSerializer, BusSerializer
 from .models import User, BusConductorProfile, AppVersion
 from django.db import transaction
+
 
 @api_view(['POST'])
 def register_or_login_user(request):
@@ -49,7 +50,7 @@ def register_or_login_user(request):
                 "sender_id": "TextLKDemo",
                 "type": "plain",
                 "message": message
-             }
+            }
         )
 
         if response.status_code == 200:
@@ -87,7 +88,6 @@ def register_or_login_user(request):
             return Response({"message": "OTP sent successfully! Please verify."}, status=status.HTTP_201_CREATED)
         else:
             return Response({"error": "Failed to send OTP via SMS."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
 
 @api_view(['POST'])
@@ -183,7 +183,6 @@ def register_or_login_conductor(request):
             return Response({"error": "Failed to send OTP via SMS."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-
 @api_view(['POST'])
 def verify_otp(request):
     """
@@ -251,29 +250,62 @@ def user_details(request):
         return Response({"error": "Only normal users can access this endpoint."}, status=status.HTTP_403_FORBIDDEN)
 
     if request.method == 'GET':
-        serializer = UserDetailsSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        user_data = {
+            "email": user.email,
+            "is_email_verified": user.is_email_verified,
+            "phone_number": user.phone_number,
+            "gender": user.gender,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "birthday": user.birthday,
+            "profile_pic": user.normaluserprofile.profile_pic if user.normaluserprofile else None,
+            "customer_id": user.normaluserprofile.customer_id if user.normaluserprofile else None,
+            "lane_1": user.normaluserprofile.lane_1 if user.normaluserprofile else None,
+            "lane_2": user.normaluserprofile.lane_2 if user.normaluserprofile else None,
+            "city": user.normaluserprofile.city if user.normaluserprofile else None,
+            "postal_code": user.normaluserprofile.postal_code if user.normaluserprofile else None,
+        }
+        return Response(user_data, status=status.HTTP_200_OK)
 
     elif request.method == 'PUT':
         new_email = request.data.get("email")
+        new_first_name = request.data.get("first_name")
+        new_last_name = request.data.get("last_name")
+        new_gender = request.data.get("gender")
+        new_birthday = request.data.get("birthday")
 
         if new_email and new_email != user.email:
             user.email = new_email
             user.is_email_verified = False  # Mark email as unverified
             user.generate_email_otp()  # Generate and send OTP for email verification
-            user.save()
-            return Response({
-                "message": "Email updated! Please verify your new email.",
-                "show_verify_button": True  # Indicate the user needs to verify the new email
-            }, status=status.HTTP_200_OK)
 
-        serializer = UserDetailsSerializer(
-            user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        # Update other fields, excluding customer_id and phone_number
+        user.first_name = new_first_name if new_first_name else user.first_name
+        user.last_name = new_last_name if new_last_name else user.last_name
+        user.gender = new_gender if new_gender else user.gender
+        user.birthday = new_birthday if new_birthday else user.birthday
 
-    return Response({"error": "Invalid request"}, status=status.HTTP_400_BAD_REQUEST)
+        # Update profile fields if available
+        normal_user_profile = user.normaluserprofile
+        if normal_user_profile is None:
+            normal_user_profile = NormalUserProfile.objects.create(user=user)
+
+        normal_user_profile.lane_1 = request.data.get(
+            "lane_1", normal_user_profile.lane_1)
+        normal_user_profile.lane_2 = request.data.get(
+            "lane_2", normal_user_profile.lane_2)
+        normal_user_profile.city = request.data.get(
+            "city", normal_user_profile.city)
+        normal_user_profile.postal_code = request.data.get(
+            "postal_code", normal_user_profile.postal_code)
+        normal_user_profile.save()
+
+        # Save the user with the updated information
+        user.save()
+
+        return Response({
+            "message": "User details updated successfully!"
+        }, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -457,7 +489,6 @@ def bus_approval_status(request):
         "bus_number": bus.bus_number,
         "is_approved": bus.is_approved
     }, status=status.HTTP_200_OK)
-
 
 
 @api_view(['GET'])
