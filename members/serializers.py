@@ -1,4 +1,4 @@
-from .models import User, BusConductorProfile, AppVersion
+from .models import User, BusConductorProfile, AppVersion, NormalUserProfile
 from busstops.models import Buses
 from rest_framework import serializers
 from .models import User
@@ -72,10 +72,14 @@ class UserDetailsSerializer(serializers.ModelSerializer):
         instance.save()
 
         normal_user_profile = instance.normaluserprofile
+        if normal_user_profile is None:
+            normal_user_profile = NormalUserProfile.objects.create(
+                user=instance)
+
         for field, value in profile_data.items():
             setattr(normal_user_profile, field, value)
-        normal_user_profile.save()
 
+        normal_user_profile.save()
         if instance.role == User.Role.BUS_CONDUCTOR and bus_conductor_data:
             profile, created = BusConductorProfile.objects.get_or_create(
                 user=instance)
