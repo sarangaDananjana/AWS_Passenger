@@ -34,17 +34,17 @@ class BusConductorProfileSerializer(serializers.ModelSerializer):
 
 class UserDetailsSerializer(serializers.ModelSerializer):
     profile_pic = serializers.ImageField(
-        source='normal_user_profile.profile_pic', required=False)
+        source='ormaluserprofile.profile_pic', required=False)
     bus_conductor_profile = BusConductorProfileSerializer(required=False)
 
     lane_1 = serializers.CharField(
-        source='normal_user_profile.lane_1', required=False)
+        source='normaluserprofile.lane_1', required=False)
     lane_2 = serializers.CharField(
-        source='normal_user_profile.lane_2', required=False)
+        source='normaluserprofile.lane_2', required=False)
     city = serializers.CharField(
-        source='normal_user_profile.city', required=False)
+        source='normaluserprofile.city', required=False)
     postal_code = serializers.CharField(
-        source='normal_user_profile.postal_code', required=False)
+        source='ormaluserprofile.postal_code', required=False)
 
     class Meta:
         model = User
