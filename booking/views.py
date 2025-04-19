@@ -1,4 +1,4 @@
-from .models import NormalUserProfile
+from members.models import NormalUserProfile
 from decimal import Decimal
 from django.db import transaction
 from django.utils.timezone import now
@@ -429,28 +429,37 @@ def get_ticket_details(request, booking_id):
     return Response(ticket_data, status=status.HTTP_200_OK)
 
 
-@api_view(['PATCH'])
+@api_view(['GET', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def update_customer_id(request):
     """
-    PATCH API to update customer_id for a normal user.
+    GET: Retrieve the current customer_id of the logged-in Normal User.
+    PATCH: Update the customer_id of the logged-in Normal User.
     """
     user = request.user
 
-    # Only Normal Users are allowed
-    if user.role != User.Role.NORMAL_USER:
-        return Response({"error": "Only normal users can update customer_id."}, status=status.HTTP_403_FORBIDDEN)
-
-    customer_id = request.data.get("customer_id")
-
-    if not customer_id:
-        return Response({"error": "customer_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+    # Ensure the user is a Normal User
+    if user.role != user.Role.NORMAL_USER:
+        return Response({"error": "Only normal users can access this endpoint."}, status=status.HTTP_403_FORBIDDEN)
 
     try:
         profile = NormalUserProfile.objects.get(user=user)
-        profile.customer_id = customer_id
-        profile.save()
-        return Response({"message": "customer_id updated successfully", "customer_id": profile.customer_id}, status=status.HTTP_200_OK)
-
     except NormalUserProfile.DoesNotExist:
         return Response({"error": "NormalUserProfile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "GET":
+        return Response({"customer_id": profile.customer_id}, status=status.HTTP_200_OK)
+
+    elif request.method == "PATCH":
+        customer_id = request.data.get("customer_id")
+        if not customer_id:
+            return Response({"error": "customer_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        profile.customer_id = customer_id
+        profile.save()
+
+        return Response({
+            "message": "customer_id updated successfully",
+            "customer_id": profile.customer_id
+        }, status=status.HTTP_200_OK)
+
