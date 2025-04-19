@@ -462,4 +462,3 @@ def update_customer_id(request):
             "message": "customer_id updated successfully",
             "customer_id": profile.customer_id
         }, status=status.HTTP_200_OK)
-
