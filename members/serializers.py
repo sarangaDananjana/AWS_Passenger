@@ -71,7 +71,7 @@ class UserDetailsSerializer(serializers.ModelSerializer):
         instance.birthday = validated_data.get('birthday', instance.birthday)
         instance.save()
 
-        normal_user_profile = instance.normal_user_profile
+        normal_user_profile = instance.normaluserprofile
         for field, value in profile_data.items():
             setattr(normal_user_profile, field, value)
         normal_user_profile.save()
