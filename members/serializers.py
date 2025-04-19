@@ -51,7 +51,7 @@ class UserDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['email', "is_email_verified", 'phone_number', 'gender',
-                  'profile_pic', 'first_name', 'last_name', 'birthday', 'bus_conductor_profile', 'lane_1', 'lane_2', 'city', 'postal_code']
+                  'profile_pic', 'first_name', 'last_name', 'birthday', 'bus_conductor_profile', 'customer_id', 'lane_1', 'lane_2', 'city', 'postal_code']
         read_only_fields = ['phone_number']  # Phone number cannot be edited
 
     def update(self, instance, validated_data):
