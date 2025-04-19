@@ -250,6 +250,9 @@ def user_details(request):
         return Response({"error": "Only normal users can access this endpoint."}, status=status.HTTP_403_FORBIDDEN)
 
     if request.method == 'GET':
+        # Safely access the profile_pic field and check if it exists
+        profile_pic = user.normaluserprofile.profile_pic if user.normaluserprofile and user.normaluserprofile.profile_pic else None
+
         user_data = {
             "email": user.email,
             "is_email_verified": user.is_email_verified,
@@ -258,7 +261,7 @@ def user_details(request):
             "first_name": user.first_name,
             "last_name": user.last_name,
             "birthday": user.birthday,
-            "profile_pic": user.normaluserprofile.profile_pic if user.normaluserprofile else None,
+            "profile_pic": profile_pic,  # Handle None or missing file gracefully
             "customer_id": user.normaluserprofile.customer_id if user.normaluserprofile else None,
             "lane_1": user.normaluserprofile.lane_1 if user.normaluserprofile else None,
             "lane_2": user.normaluserprofile.lane_2 if user.normaluserprofile else None,
