@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import register_or_login_user, logout_user, user_details, verify_otp, verify_email_otp, get_conductor_details, BusConductorProfileUpdateView, bus_management, bus_approval_status, check_update ,register_or_login_conductor
+from .views import register_or_login_user, logout_user, user_details, verify_otp, verify_email_otp, get_conductor_details, BusConductorProfileUpdateView, bus_management, bus_approval_status, check_update ,register_or_login_conductor,delete_account
 
 
 urlpatterns = [
@@ -17,5 +17,6 @@ urlpatterns = [
     path('bus-details-update/', bus_management, name='update_bus'),
     path('approval-status/', bus_approval_status, name='bus-approval-status'),
     path('android-app-version/', check_update, name='update_check'),
+    path('delete_account/', delete_account, name='delete_account'),
 
 ]
