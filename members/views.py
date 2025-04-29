@@ -1,5 +1,5 @@
 import requests
-from members.models import User, NormalUserProfile
+from members.models import User, NormalUserProfile, Notification
 from busstops.models import Buses
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.decorators import api_view, permission_classes
@@ -514,3 +514,33 @@ def check_update(request):
         "latest_version": latest_version.version,
         "update_url": latest_version.update_url if update_required else None
     })
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_account(request):
+    """
+    API to allow users to delete their account and remove their entire information.
+    """
+    user = request.user
+
+    try:
+        with transaction.atomic():
+            # Delete the user's notifications
+            Notification.objects.filter(user=user).delete()
+
+            # Delete the user's profile data based on their role
+            if user.role == User.Role.NORMAL_USER:
+                if hasattr(user, 'normaluserprofile'):
+                    user.normaluserprofile.delete()
+            elif user.role == User.Role.BUS_CONDUCTOR:
+                if hasattr(user, 'busconductorprofile'):
+                    user.busconductorprofile.delete()
+
+            # Finally, delete the user account
+            user.delete()
+
+            return Response({"message": "Account and all associated data deleted successfully."}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": f"An error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
