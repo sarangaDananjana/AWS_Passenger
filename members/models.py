@@ -98,6 +98,7 @@ class BusConductorProfile(models.Model):
     nic_number = models.CharField(max_length=255, null=True, blank=True)
     full_name = models.CharField(max_length=255, null=True, blank=True)
     address = models.CharField(max_length=255, null=True, blank=True)
+    machine = models.BooleanField(default=False)
 
 
 @receiver(post_save, sender=User)
