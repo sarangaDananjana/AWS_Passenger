@@ -40,8 +40,10 @@ SECRET_KEY = env("SECRET_KEY")  # Read from .env
 DEBUG = True
 
 ALLOWED_HOSTS = ['54.254.116.86', 
-                  'www.passenger.work.gd',
-                    'passenger.work.gd']
+                  'www.passenger.lk',
+		'www.passenger.work.gd',
+		'passenger.work.gd', 
+		   'passenger.lk']
 
 
 # Application definition
