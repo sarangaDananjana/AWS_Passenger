@@ -4,12 +4,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from busstops.models import Buses
 from members.models import BusConductorProfile, User
-from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+from busstops.models import BusRoute
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
 from busstops.models import Buses
 from members.models import BusConductorProfile, User
 
@@ -52,4 +52,31 @@ def login_conductor(request):
         "message": "Login successful!",
         "access": str(refresh.access_token),
         "refresh": str(refresh),
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def route_sections(request, route_id):
+    """
+    GET /api/routes/<route_id>/
+    Returns each section’s name, position, distance, time,
+    and just the boarding-point names.
+    """
+    route = get_object_or_404(BusRoute, pk=route_id)
+
+    sections_data = []
+    for sec in route.sections.all().order_by('position'):
+        bp_names = [bp.name for bp in sec.section_boarding_points.all()]
+        sections_data.append({
+            "name":            sec.name,
+            "position":        sec.position,
+            "distance":        str(sec.distance) if sec.distance is not None else None,
+            "time":            str(sec.time)     if sec.time     is not None else None,
+            "boarding_points": bp_names,
+        })
+
+    return Response({
+        "route_id":   route.id,
+        "route_name": route.name,
+        "sections":   sections_data
     }, status=status.HTTP_200_OK)
