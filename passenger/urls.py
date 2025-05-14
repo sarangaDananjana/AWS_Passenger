@@ -34,6 +34,7 @@ urlpatterns = [
     path('api/booking/', include('booking.urls')),
     path('api/conductor/', include('conductor.urls')),
     path('api/live_location/', include('live_location.urls')),
+    path('api/machine/', include('machine.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
