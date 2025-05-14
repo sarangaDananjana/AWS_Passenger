@@ -39,11 +39,11 @@ SECRET_KEY = env("SECRET_KEY")  # Read from .env
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['54.254.116.86', 
-                  'www.passenger.lk',
-		'www.passenger.work.gd',
-		'passenger.work.gd', 
-		   'passenger.lk']
+ALLOWED_HOSTS = ['54.254.116.86',
+                 'www.passenger.lk',
+                 'www.passenger.work.gd',
+                 'passenger.work.gd',
+                 'passenger.lk']
 
 
 # Application definition
@@ -51,7 +51,7 @@ ALLOWED_HOSTS = ['54.254.116.86',
 INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
-    'whitenoise.runserver_nostatic', 
+    'whitenoise.runserver_nostatic',
     'rest_framework_simplejwt.token_blacklist',
     'members',
     'jazzmin',
@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'booking',
     'conductor',
     'live_location',
+    'machine',
 
 ]
 
@@ -105,10 +106,10 @@ WSGI_APPLICATION = 'passenger.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE':'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.mysql',
         'NAME': 'passenger_database',
         'USER': 'admin',
-        'HOST':'passengerdb.cn2mucy26tr9.ap-southeast-1.rds.amazonaws.com',
+        'HOST': 'passengerdb.cn2mucy26tr9.ap-southeast-1.rds.amazonaws.com',
         'PORT': '3306',
         'PASSWORD': 'A0763003258z'
     }
