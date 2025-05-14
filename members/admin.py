@@ -13,7 +13,7 @@ class AppVersionAdmin(admin.ModelAdmin):
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     fieldsets = (
-        (None, {"fields": ("phone_number","password")}),
+        (None, {"fields": ("phone_number", "password")}),
         ("Personal info", {"fields": ("first_name",
          "last_name", "email", "gender", "birthday")}),
         ("Permissions", {"fields": ("is_active", "is_staff",
@@ -64,7 +64,7 @@ class NormalUserProfileAdmin(admin.ModelAdmin):
 
 @admin.register(BusConductorProfile)
 class BusConductorProfileAdmin(admin.ModelAdmin):
-    list_display = ("user", "nic_number", "full_name", "address")
+    list_display = ("user", "nic_number", "full_name", "address", "machine")
     search_fields = ("nic_number", "full_name")
     list_filter = ("user__gender",)
 
