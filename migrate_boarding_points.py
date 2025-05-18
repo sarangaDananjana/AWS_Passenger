@@ -19,24 +19,19 @@ collection = mdb.BoardingPoints          # collection name: boarding_points
 # 4. (Optional) ensure a geospatial index on location
 collection.create_index([("location", "2dsphere")])
 
-# 5. Wipe existing docs (so re-running won’t duplicate)
-collection.delete_many({})
 
-# 6. Build docs and bulk‐insert
-docs = []
 for bp in BoardingPoint.objects.all():
-    docs.append({
+    filter_query = {
         "name": bp.name,
         "province": bp.province,
-        "city": bp.city,
-        "location": {
-            "type": "Point",
-            "coordinates": [bp.longitude, bp.latitude]
+        "city": bp.city
+    }
+    update_data = {
+        "$set": {
+            "longitude": bp.longitude,
+            "latitude": bp.latitude,
         }
-    })
+    }
+    collection.update_one(filter_query, update_data, upsert=True)
 
-if docs:
-    result = collection.insert_many(docs)
-    print(f"✅ Inserted {len(result.inserted_ids)} boarding points into MongoDB.")
-else:
-    print("ℹ️ No boarding points found to migrate.")
+print("✅ Boarding points upserted into MongoDB.")
